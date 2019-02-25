@@ -905,11 +905,21 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 						operationObject.Security = &newSecurity
 					}
 					if opts.Responses != nil {
+						var hasNon200Success, hasExplicit200Resp bool
 						for name, resp := range opts.Responses {
+							code, _ := strconv.Atoi(name)
+							if code == 200 {
+								hasExplicit200Resp = true
+							} else if code >= 100 && code < 300 {
+								hasNon200Success = true
+							}
 							operationObject.Responses[name] = swaggerResponseObject{
 								Description: resp.Description,
 								Schema:      swaggerSchemaFromProtoSchema(resp.Schema, reg, customRefs),
 							}
+						}
+						if hasNon200Success && !hasExplicit200Resp && meth.ResponseType.FQMN() == ".google.protobuf.Empty" {
+							delete(operationObject.Responses, "200")
 						}
 					}
 
@@ -1238,9 +1248,9 @@ func updateSwaggerDataFromComments(swaggerObject interface{}, comment string, is
 				}
 				// overrides the schema value only if it's empty
 				// keep the comment precedence when updating the package definition
-				 if descriptionValue.Len() == 0 || isPackageObject {
+				if descriptionValue.Len() == 0 || isPackageObject {
 					descriptionValue.Set(reflect.ValueOf(description))
-				 }
+				}
 			}
 			return nil
 		}
@@ -1248,7 +1258,7 @@ func updateSwaggerDataFromComments(swaggerObject interface{}, comment string, is
 
 	// There was no summary field on the swaggerObject. Try to apply the
 	// whole comment into description if the swagger object description is empty.
-	if descriptionValue.CanSet() && (descriptionValue.Len() == 0 || isPackageObject){
+	if descriptionValue.CanSet() && (descriptionValue.Len() == 0 || isPackageObject) {
 		descriptionValue.Set(reflect.ValueOf(strings.Join(paragraphs, "\n\n")))
 		return nil
 	}
