@@ -270,6 +270,7 @@ func renderMessagesAsDefinition(messages messageMap, d swaggerDefinitionsObject,
 
 			// Warning: Make sure not to overwrite any fields already set on the schema type.
 			schema.ExternalDocs = protoSchema.ExternalDocs
+			schema.ReadOnly = protoSchema.ReadOnly
 			schema.MultipleOf = protoSchema.MultipleOf
 			schema.Maximum = protoSchema.Maximum
 			schema.ExclusiveMaximum = protoSchema.ExclusiveMaximum
@@ -1539,6 +1540,7 @@ func protoJSONSchemaToSwaggerSchemaCore(j *swagger_options.JSONSchema, reg *desc
 func updateSwaggerObjectFromJSONSchema(s *swaggerSchemaObject, j *swagger_options.JSONSchema) {
 	s.Title = j.GetTitle()
 	s.Description = j.GetDescription()
+	s.ReadOnly = j.GetReadOnly()
 	s.MultipleOf = j.GetMultipleOf()
 	s.Maximum = j.GetMaximum()
 	s.ExclusiveMaximum = j.GetExclusiveMaximum()
