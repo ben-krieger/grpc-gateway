@@ -32,4 +32,10 @@ docker run -itv $(pwd):/grpc-gateway -w /grpc-gateway --entrypoint /bin/bash --r
     l.gcr.io/google/bazel -c 'bazel run :gazelle_fix; bazel run :buildifier'
 ```
 
+To only update the OpenAPI protobuf:
+
+```bash
+docker run -v $(pwd):/src/grpc-gateway -w /src/grpc-gateway --rm jfbrandhorst/grpc-gateway-build-env make protoc-gen-swagger/options/openapiv2.pb.go
+```
+
 If this has resulted in some file changes in the repo, please ensure you check those in with your merge request.

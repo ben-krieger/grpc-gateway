@@ -74,9 +74,14 @@ message Response {
   // If `Schema` is not provided, it means there is no content to the response.
   Schema schema = 2;
   // field 3 is reserved for 'headers'.
-  reserved 3;
+  map<string, Header> headers = 3;
   // field 3 is reserved for 'example'.
   reserved 4;
+}
+
+message Header {
+  string description = 1;
+  JSONSchema schema = 2;
 }
 
 // `Info` is a representation of OpenAPI v2 specification's Info object.

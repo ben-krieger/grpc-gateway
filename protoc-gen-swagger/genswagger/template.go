@@ -911,12 +911,21 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 							code, _ := strconv.Atoi(name)
 							if code == 200 {
 								hasExplicit200Resp = true
+								if resp.Schema == nil {
+									operationObject.Responses[name] = swaggerResponseObject{
+										Description: resp.Description,
+										Schema:      operationObject.Responses["200"].Schema,
+										Headers:     swaggerHeadersFromProtoHeaders(resp.Headers),
+									}
+									continue
+								}
 							} else if code >= 100 && code < 300 {
 								hasNon200Success = true
 							}
 							operationObject.Responses[name] = swaggerResponseObject{
 								Description: resp.Description,
 								Schema:      swaggerSchemaFromProtoSchema(resp.Schema, reg, customRefs),
+								Headers:     swaggerHeadersFromProtoHeaders(resp.Headers),
 							}
 						}
 						if hasNon200Success && !hasExplicit200Resp && meth.ResponseType.FQMN() == ".google.protobuf.Empty" {
@@ -1529,9 +1538,7 @@ func protoJSONSchemaToSwaggerSchemaCore(j *swagger_options.JSONSchema, reg *desc
 			ret.Ref += j.GetRef()
 		}
 	} else {
-		f, t := protoJSONSchemaTypeToFormat(j.GetType())
-		ret.Format = f
-		ret.Type = t
+		ret.Type, ret.Format = protoJSONSchemaTypeToFormat(j.GetType())
 	}
 
 	return ret
@@ -1556,6 +1563,24 @@ func updateSwaggerObjectFromJSONSchema(s *swaggerSchemaObject, j *swagger_option
 	s.MaxProperties = j.GetMaxProperties()
 	s.MinProperties = j.GetMinProperties()
 	s.Required = j.GetRequired()
+}
+
+func swaggerHeadersFromProtoHeaders(s map[string]*swagger_options.Header) swaggerHeadersObject {
+	ret := swaggerHeadersObject{}
+
+	for k, v := range s {
+		ret[k] = swaggerHeaderFromProtoHeader(v)
+	}
+
+	return ret
+}
+
+func swaggerHeaderFromProtoHeader(s *swagger_options.Header) swaggerHeaderObject {
+	ret := swaggerHeaderObject{Description: s.GetDescription()}
+	t, _ := protoJSONSchemaTypeToFormat(s.GetSchema().GetType())
+	ret.Type = t
+	// TODO: handle more fields
+	return ret
 }
 
 func swaggerSchemaFromProtoSchema(s *swagger_options.Schema, reg *descriptor.Registry, refs refMap) swaggerSchemaObject {

@@ -16,7 +16,7 @@ type binding struct {
 	*descriptor.Binding
 }
 
-// http://swagger.io/specification/#infoObject
+// http://swagger.io/v2/specification/#infoObject
 type swaggerInfoObject struct {
 	Title          string `json:"title"`
 	Description    string `json:"description,omitempty"`
@@ -27,26 +27,26 @@ type swaggerInfoObject struct {
 	License *swaggerLicenseObject `json:"license,omitempty"`
 }
 
-// http://swagger.io/specification/#contactObject
+// http://swagger.io/v2/specification/#contactObject
 type swaggerContactObject struct {
 	Name  string `json:"name,omitempty"`
 	URL   string `json:"url,omitempty"`
 	Email string `json:"email,omitempty"`
 }
 
-// http://swagger.io/specification/#licenseObject
+// http://swagger.io/v2/specification/#licenseObject
 type swaggerLicenseObject struct {
 	Name string `json:"name,omitempty"`
 	URL  string `json:"url,omitempty"`
 }
 
-// http://swagger.io/specification/#externalDocumentationObject
+// http://swagger.io/v2/specification/#externalDocumentationObject
 type swaggerExternalDocumentationObject struct {
 	Description string `json:"description,omitempty"`
 	URL         string `json:"url,omitempty"`
 }
 
-// http://swagger.io/specification/#swaggerObject
+// http://swagger.io/v2/specification/#swaggerObject
 type swaggerObject struct {
 	Swagger             string                              `json:"swagger"`
 	Info                swaggerInfoObject                   `json:"info"`
@@ -63,10 +63,10 @@ type swaggerObject struct {
 	ExternalDocs        *swaggerExternalDocumentationObject `json:"externalDocs,omitempty"`
 }
 
-// http://swagger.io/specification/#securityDefinitionsObject
+// http://swagger.io/v2/specification/#securityDefinitionsObject
 type swaggerSecurityDefinitionsObject map[string]swaggerSecuritySchemeObject
 
-// http://swagger.io/specification/#securitySchemeObject
+// http://swagger.io/v2/specification/#securitySchemeObject
 type swaggerSecuritySchemeObject struct {
 	Type             string              `json:"type"`
 	Description      string              `json:"description,omitempty"`
@@ -78,16 +78,16 @@ type swaggerSecuritySchemeObject struct {
 	Scopes           swaggerScopesObject `json:"scopes,omitempty"`
 }
 
-// http://swagger.io/specification/#scopesObject
+// http://swagger.io/v2/specification/#scopesObject
 type swaggerScopesObject map[string]string
 
-// http://swagger.io/specification/#securityRequirementObject
+// http://swagger.io/v2/specification/#securityRequirementObject
 type swaggerSecurityRequirementObject map[string][]string
 
-// http://swagger.io/specification/#pathsObject
+// http://swagger.io/v2/specification/#pathsObject
 type swaggerPathsObject map[string]swaggerPathItemObject
 
-// http://swagger.io/specification/#pathItemObject
+// http://swagger.io/v2/specification/#pathItemObject
 type swaggerPathItemObject struct {
 	Get    *swaggerOperationObject `json:"get,omitempty"`
 	Delete *swaggerOperationObject `json:"delete,omitempty"`
@@ -96,7 +96,7 @@ type swaggerPathItemObject struct {
 	Patch  *swaggerOperationObject `json:"patch,omitempty"`
 }
 
-// http://swagger.io/specification/#operationObject
+// http://swagger.io/v2/specification/#operationObject
 type swaggerOperationObject struct {
 	Summary     string                  `json:"summary,omitempty"`
 	Description string                  `json:"description,omitempty"`
@@ -112,7 +112,7 @@ type swaggerOperationObject struct {
 
 type swaggerParametersObject []swaggerParameterObject
 
-// http://swagger.io/specification/#parameterObject
+// http://swagger.io/v2/specification/#parameterObject
 type swaggerParameterObject struct {
 	Name             string              `json:"name"`
 	Description      string              `json:"description,omitempty"`
@@ -132,7 +132,7 @@ type swaggerParameterObject struct {
 }
 
 // core part of schema, which is common to itemsObject and schemaObject.
-// http://swagger.io/specification/#itemsObject
+// http://swagger.io/v2/specification/#itemsObject
 type schemaCore struct {
 	Type    string          `json:"type,omitempty"`
 	Format  string          `json:"format,omitempty"`
@@ -157,13 +157,14 @@ func (o *swaggerItemsObject) getType() string {
 	return o.Type
 }
 
-// http://swagger.io/specification/#responsesObject
+// http://swagger.io/v2/specification/#responsesObject
 type swaggerResponsesObject map[string]swaggerResponseObject
 
-// http://swagger.io/specification/#responseObject
+// http://swagger.io/v2/specification/#responseObject
 type swaggerResponseObject struct {
-	Description string              `json:"description"`
-	Schema      swaggerSchemaObject `json:"schema"`
+	Description string               `json:"description"`
+	Schema      swaggerSchemaObject  `json:"schema"`
+	Headers     swaggerHeadersObject `json:"headers,omitempty"`
 }
 
 type keyVal struct {
@@ -197,7 +198,7 @@ func (op swaggerSchemaObjectProperties) MarshalJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// http://swagger.io/specification/#schemaObject
+// http://swagger.io/v2/specification/#schemaObject
 type swaggerSchemaObject struct {
 	schemaCore
 	// Properties can be recursively defined
@@ -226,12 +227,41 @@ type swaggerSchemaObject struct {
 	Required         []string `json:"required,omitempty"`
 }
 
-// http://swagger.io/specification/#referenceObject
+// http://swagger.io/v2/specification/#headersObject
+type swaggerHeadersObject map[string]swaggerHeaderObject
+
+type swaggerHeaderObject struct {
+	Description string `json:"description,omitempty"`
+	Type        string `json:"type"`
+	Format      string `json:"format,omitempty"`
+
+	Items *swaggerItemsObject `json:"items,omitempty"`
+
+	Default          string  `json:"default,omitempty"`
+	Maximum          float64 `json:"maximum,omitempty"`
+	ExclusiveMaximum bool    `json:"exclusiveMaximum,omitempty"`
+	Minimum          float64 `json:"minimum,omitempty"`
+	ExclusiveMinimum bool    `json:"exclusiveMinimum,omitempty"`
+	MaxLength        uint64  `json:"maxLength,omitempty"`
+	MinLength        uint64  `json:"minLength,omitempty"`
+	Pattern          string  `json:"pattern,omitempty"`
+	MaxItems         uint64  `json:"maxItems,omitempty"`
+	MinItems         uint64  `json:"minItems,omitempty"`
+	UniqueItems      bool    `json:"uniqueItems,omitempty"`
+
+	// If the item is an enumeration include a list of all the *NAMES* of the
+	// enum values.  I'm not sure how well this will work but assuming all enums
+	// start from 0 index it will be great. I don't think that is a good assumption.
+	Enum       []string `json:"enum,omitempty"`
+	MultipleOf float64  `json:"multipleOf,omitempty"`
+}
+
+// http://swagger.io/v2/specification/#referenceObject
 type swaggerReferenceObject struct {
 	Ref string `json:"$ref"`
 }
 
-// http://swagger.io/specification/#definitionsObject
+// http://swagger.io/v2/specification/#definitionsObject
 type swaggerDefinitionsObject map[string]swaggerSchemaObject
 
 // Internal type mapping from FQMN to descriptor.Message. Used as a set by the
